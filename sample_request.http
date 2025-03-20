@@ -1,0 +1,75 @@
+### Base URL
+@baseUrl = http://localhost:8000/api/v1
+
+### 
+POST {{baseUrl}}/validate
+Content-Type: application/json
+
+{
+  "content": "let's play this game of musical chairs while discussing the latest trends in classical music and the impact of music therapy",
+  "guardrails": ["topics"],
+  "options": {
+    "topics": {
+      "denied_topics": ["music", "therapy"]
+    }
+  }
+}
+### 
+POST {{baseUrl}}/validate
+Content-Type: application/json
+
+{
+  "content": "Coldplay performed at the Grammys last night. They are a great band.",
+  "guardrails": ["topics"],
+  "options": {
+    "topics": {
+      "denied_topics": ["ice", "cold"]
+    }
+  }
+}
+
+
+
+### 
+POST {{baseUrl}}/validate
+Content-Type: application/json
+
+{
+  "content": "John Doe's email is john.doe@example.com, phone number is 123-45-7890, and his social security number is 123456789. However, the email john.doe@work.com is not his personal email.",
+  "guardrails": ["pii"],
+  "options": {
+    "pii": {
+      "entity_types": ["email", "phone", "ssn"]
+    }
+  }
+}
+
+### 
+POST {{baseUrl}}/validate
+Content-Type: application/json
+
+{
+  "content": "John Doe's email is john.doe@example.com, and let's play this game of musical chairs while discussing the latest trends in classical music and the impact of music therapy",
+  "guardrails": ["topics", "pii"],
+  "options": {
+    "topics": {
+      "denied_topics": ["music", "therapy"]
+    },
+    "pii": {
+      "entity_types": ["email", "phone"]
+    }
+  }
+}
+### 
+POST {{baseUrl}}/transform
+Content-Type: application/json
+
+{
+  "content": "John Doe's email is john.doe@example.com, phone number is 123-456-7890, and his credit card number is 4111 1111 1111 1111. Note that the number 4111 1111 1111 1112 is not a valid credit card number.",
+  "guardrails": ["pii"],
+  "options": {
+    "pii": {
+      "entity_types": ["email", "phone", "credit_card"]
+    }
+  }
+}
