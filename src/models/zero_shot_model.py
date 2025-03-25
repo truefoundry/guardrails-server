@@ -33,7 +33,7 @@ class ZeroShotModel:
         """
         return self.model is not None
 
-    def detect_topics(self, text: str, denied_topics: List[str], threshold: float = 0.5) -> List[Dict[str, Any]]:
+    def detect_topics(self, text: str, denied_topics: List[str], threshold: float = 0.8) -> List[Dict[str, Any]]:
         """
         Detect if text relates to any of the denied topics.
         
