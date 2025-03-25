@@ -1,7 +1,7 @@
 from typing import Any, Dict, List
 
 from dotenv import load_dotenv
-from pydantic import BaseModel, ValidationError, field_validator
+from pydantic import BaseModel, ValidationError, field_validator, Field
 from sentence_transformers import SentenceTransformer, util
 
 from src.guardrails.base import (Guardrail, GuardrailCapability, TransformationResult,
@@ -11,14 +11,15 @@ from src.models.zero_shot_model import ZeroShotModel
 load_dotenv()
 
 class TopicOptions(BaseModel):
-    denied_topics: List[str]
-    threshold: float
-
-    @field_validator('denied_topics')
-    def validate_denied_topics(cls, v):
-        if not v:
-            raise ValueError("Denied topics list cannot be empty.")
-        return v
+    denied_topics: List[str] = Field(
+        default_factory=list,
+        description="List of topics that should be detected and blocked. The guardrail will flag content related to these topics."
+    )
+    
+    threshold: float = Field(
+        default=0.5,
+        description="Confidence threshold for topic detection, between 0 and 1. Lower values increase sensitivity but may cause more false positives."
+    )
 
     @field_validator('threshold')
     def validate_threshold(cls, v):

@@ -2,13 +2,21 @@ from typing import Dict, Any, List
 from src.guardrails.base import Guardrail, GuardrailCapability, ValidationResult, TransformationResult
 from src.models.presidio_model import PresidioModel
 import re
-from pydantic import BaseModel, field_validator, ValidationError, validator
+from pydantic import BaseModel, field_validator, ValidationError, validator, Field
 
 from src.guardrails.pii_types import PII_ENTITY_TYPE_MAP
 
 class Options(BaseModel):
-    entity_types: List[str] 
-    custom_regexes: List[Dict[str, str]]
+    """Options for the PII Guardrail."""
+    entity_types: List[str] = Field(
+        default=[],
+        description="List of PII entity types to detect. One or more of: " + ", ".join(PII_ENTITY_TYPE_MAP.keys())
+    )
+
+    custom_regexes: List[Dict[str, str]] = Field(
+        default=[],
+        description="List of custom regex patterns to detect additional PII types. Each item should be a dictionary with 'pattern' (regex string) and 'label' (descriptive name)."
+    )
 
     @field_validator('entity_types')
     def validate_entity_types(cls, v):
