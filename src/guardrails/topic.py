@@ -36,12 +36,7 @@ class TopicGuardrail(Guardrail):
         )
         self._capabilities.add(GuardrailCapability.VALIDATE)
         self._options = TopicOptions(
-            denied_topics=[
-                "Violence", 
-                "Hate Speech",
-                "Drugs",
-                "Sexual Content"
-            ],
+            denied_topics=[],
             threshold=0.5  # Default threshold for topic detection
         )
         self.model = ZeroShotModel()

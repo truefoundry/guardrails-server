@@ -38,18 +38,7 @@ class PIIGuardrail(Guardrail):
         self._capabilities.add(GuardrailCapability.VALIDATE)
         self._capabilities.add(GuardrailCapability.TRANSFORM)
         self._options = Options(
-            entity_types=[
-                "email",
-                "phone",
-                "ssn",
-                "credit_card",
-                "address",
-                "name",
-                "date_of_birth",
-                "ip_address",
-                "passport",
-                "drivers_license"
-            ],
+            entity_types=[],
             custom_regexes=[]
         )
         self.model = PresidioModel()
