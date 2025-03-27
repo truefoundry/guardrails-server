@@ -76,3 +76,88 @@ Content-Type: application/json
     }
   }
 }
+
+### Word Filter Examples
+POST {{baseUrl}}/validate
+Content-Type: application/json
+
+{
+  "content": "This is a bad word example with some inappropriate content",
+  "guardrails": ["word"],
+  "options": {
+    "word": {
+      "word_list": ["bad", "inappropriate"],
+      "case_sensitive": false,
+      "whole_words_only": true
+    }
+  }
+}
+
+### Word Filter with Case Sensitivity
+POST {{baseUrl}}/validate
+Content-Type: application/json
+
+{
+  "content": "The Bad word is here, but BAD is different when case sensitive",
+  "guardrails": ["word"],
+  "options": {
+    "word": {
+      "word_list": ["bad"],
+      "case_sensitive": true,
+      "whole_words_only": true
+    }
+  }
+}
+
+### Word Filter with Partial Word Matching
+POST {{baseUrl}}/validate
+Content-Type: application/json
+
+{
+  "content": "The word 'bad' appears in 'badge' and 'badminton'",
+  "guardrails": ["word"],
+  "options": {
+    "word": {
+      "word_list": ["bad"],
+      "case_sensitive": false,
+      "whole_words_only": false
+    }
+  }
+}
+
+### Word Filter Transform Example
+POST {{baseUrl}}/transform
+Content-Type: application/json
+
+{
+  "content": "This is a bad word example with some inappropriate content",
+  "guardrails": ["word"],
+  "options": {
+    "word": {
+      "word_list": ["bad", "inappropriate"],
+      "case_sensitive": false,
+      "whole_words_only": true,
+      "replacement": "[FILTERED]"
+    }
+  }
+}
+
+### Combined Word Filter and PII Example
+POST {{baseUrl}}/transform
+Content-Type: application/json
+
+{
+  "content": "John's email is john@example.com and this is a bad word example",
+  "guardrails": ["word", "pii"],
+  "options": {
+    "word": {
+      "word_list": ["bad"],
+      "case_sensitive": false,
+      "whole_words_only": true,
+      "replacement": "[FILTERED]"
+    },
+    "pii": {
+      "entity_types": ["email"]
+    }
+  }
+}

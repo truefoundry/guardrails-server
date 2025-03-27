@@ -4,6 +4,7 @@ from typing import List, Dict, Any, Optional
 from src.guardrails.base import GuardrailRegistry
 from src.guardrails.pii import PIIGuardrail
 from src.guardrails.topic import TopicGuardrail
+from src.guardrails.word_filter import WordFilterGuardrail
 
 app = FastAPI(
     title="LLM Guardrails Service",
@@ -15,6 +16,7 @@ app = FastAPI(
 registry = GuardrailRegistry()
 registry.register(PIIGuardrail())
 registry.register(TopicGuardrail())
+registry.register(WordFilterGuardrail())
 
 class ValidateRequest(BaseModel):
     content: str
