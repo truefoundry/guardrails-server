@@ -17,7 +17,7 @@ class TopicOptions(BaseModel):
     )
     
     threshold: float = Field(
-        default=0.5,
+        default=0.95,
         description="Confidence threshold for topic detection, between 0 and 1. Lower values increase sensitivity but may cause more false positives."
     )
 
