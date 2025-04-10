@@ -79,12 +79,12 @@ Returns a list of all available guardrails and their capabilities.
 POST /api/v1/validate
 ```
 
-Validates an LLM response against specified guardrails and returns whether it passes or fails.
+Validates an LLM response against specified guardrails and returns whether it passes or fails. Supports both single string content and batch processing of multiple strings.
 
 **Request Body:**
 ```json
 {
-  "content": "LLM response text",
+  "content": "LLM response text" | ["LLM response text 1", "LLM response text 2"],
   "guardrails": ["pii", "profanity", "relevancy"],
   "options": {
     "pii": {
@@ -102,15 +102,51 @@ Validates an LLM response against specified guardrails and returns whether it pa
 }
 ```
 
-**Response:**
+**Response (Single String):**
 ```json
 {
   "is_valid": boolean,
   "failed_guardrails": ["string"],
   "details": {
-    "guardrail_id": {
+    "content_0": {
       "passed": boolean,
-      "violations": ["string"]
+      "violations": ["string"],
+      "guardrail_details": {
+        "guardrail_id": {
+          "passed": boolean,
+          "violations": ["string"]
+        }
+      }
+    }
+  }
+}
+```
+
+**Response (Multiple Strings):**
+```json
+{
+  "is_valid": boolean,
+  "failed_guardrails": ["string"],
+  "details": {
+    "content_0": {
+      "passed": boolean,
+      "violations": ["string"],
+      "guardrail_details": {
+        "guardrail_id": {
+          "passed": boolean,
+          "violations": ["string"]
+        }
+      }
+    },
+    "content_1": {
+      "passed": boolean,
+      "violations": ["string"],
+      "guardrail_details": {
+        "guardrail_id": {
+          "passed": boolean,
+          "violations": ["string"]
+        }
+      }
     }
   }
 }
@@ -121,12 +157,12 @@ Validates an LLM response against specified guardrails and returns whether it pa
 POST /api/v1/transform
 ```
 
-Applies specified transformations to make the content compliant with guardrails.
+Applies specified transformations to make the content compliant with guardrails. Supports both single string content and batch processing of multiple strings.
 
 **Request Body:**
 ```json
 {
-  "content": "LLM response text",
+  "content": "LLM response text" | ["LLM response text 1", "LLM response text 2"],
   "guardrails": ["pii", "profanity"],
   "options": {
     "pii": {
@@ -143,14 +179,36 @@ Applies specified transformations to make the content compliant with guardrails.
 }
 ```
 
-**Response:**
+**Response (Single String):**
 ```json
 {
   "transformed_content": "string",
   "applied_transformations": ["string"],
   "details": {
-    "guardrail_id": {
-      "details": {}
+    "content_0": {
+      "guardrail_id": {
+        "details": {}
+      }
+    }
+  }
+}
+```
+
+**Response (Multiple Strings):**
+```json
+{
+  "transformed_contents": ["string", "string"],
+  "applied_transformations": ["string"],
+  "details": {
+    "content_0": {
+      "guardrail_id": {
+        "details": {}
+      }
+    },
+    "content_1": {
+      "guardrail_id": {
+        "details": {}
+      }
     }
   }
 }
@@ -218,6 +276,176 @@ pytest
 
 # Run linting
 flake8
+```
+
+## Adding a New Guardrail
+
+To add a new guardrail to the system, follow these steps:
+
+1. Create a new file in `src/guardrails/` for your guardrail implementation:
+
+```python
+from typing import Dict, Any
+from pydantic import BaseModel, Field
+from src.guardrails.base import (
+    Guardrail, 
+    GuardrailCapability, 
+    ValidationResult,
+    TransformationResult
+)
+
+# Define options schema for your guardrail (optional)
+class YourGuardrailOptions(BaseModel):
+    option1: str = Field(
+        default="default_value",
+        description="Description of option1"
+    )
+    option2: int = Field(
+        default=0,
+        description="Description of option2"
+    )
+
+class YourGuardrail(Guardrail):
+    def __init__(self):
+        super().__init__(
+            id="your_guardrail_id",
+            name="Your Guardrail Name",
+            description="Description of what your guardrail does"
+        )
+        # Add supported capabilities
+        self._capabilities.add(GuardrailCapability.VALIDATE)
+        self._capabilities.add(GuardrailCapability.TRANSFORM)
+        # Set default options
+        self._options = YourGuardrailOptions()
+
+    def _validate(self, content: str, options: Dict[str, Any]) -> ValidationResult:
+        # Merge default options with provided options
+        try:
+            merged_options = self._options.model_copy(update=options)
+            YourGuardrailOptions.model_validate(merged_options.model_dump())
+        except ValidationError as e:
+            raise Exception(f"Error in Your Guardrail: {str(e)}")
+        
+        # Implement your validation logic here
+        violations = []
+        # ... your validation code ...
+        
+        return ValidationResult(
+            passed=len(violations) == 0,
+            violations=violations
+        )
+
+    def _transform(self, content: str, options: Dict[str, Any]) -> TransformationResult:
+        # Implement your transformation logic here
+        transformed_content = content
+        # ... your transformation code ...
+        
+        return TransformationResult(
+            transformed_content=transformed_content,
+            details={
+                "your_detail_key": "your_detail_value"
+            }
+        )
+```
+
+2. Register your guardrail in `src/api/app.py`:
+
+```python
+from src.guardrails.your_guardrail import YourGuardrail
+
+# Add to existing guardrail registrations
+registry.register(YourGuardrail())
+```
+
+3. (Optional) If your guardrail requires additional dependencies:
+   - Add them to `requirements.txt`
+   - Document any special installation steps
+   - Add any required environment variables to `.env.example`
+
+### Best Practices
+
+1. **Input Validation**
+   - Always validate input options using Pydantic models
+   - Provide clear error messages for invalid inputs
+   - Document all options and their constraints
+
+2. **Error Handling**
+   - Handle edge cases gracefully
+   - Provide meaningful error messages
+   - Use appropriate HTTP status codes for API errors
+
+3. **Performance**
+   - Consider batch processing implications
+   - Optimize resource-intensive operations
+   - Cache results when appropriate
+
+4. **Documentation**
+   - Document your guardrail's purpose and capabilities
+   - Provide example requests and responses
+   - Document any special configuration requirements
+   - Update the API documentation if adding new endpoints
+
+### Example: Simple Profanity Guardrail
+
+```python
+from typing import Dict, Any, List
+from pydantic import BaseModel, Field
+from src.guardrails.base import (
+    Guardrail,
+    GuardrailCapability,
+    ValidationResult,
+    TransformationResult
+)
+
+class ProfanityOptions(BaseModel):
+    custom_words: List[str] = Field(
+        default_factory=list,
+        description="Additional words to consider as profanity"
+    )
+    replacement: str = Field(
+        default="****",
+        description="Text to replace profanity with"
+    )
+
+class ProfanityGuardrail(Guardrail):
+    def __init__(self):
+        super().__init__(
+            id="profanity",
+            name="Profanity Filter",
+            description="Detects and filters profanity in text"
+        )
+        self._capabilities.add(GuardrailCapability.VALIDATE)
+        self._capabilities.add(GuardrailCapability.TRANSFORM)
+        self._options = ProfanityOptions()
+        self._default_profanity = {"bad", "words", "list"}
+
+    def _validate(self, content: str, options: Dict[str, Any]) -> ValidationResult:
+        merged_options = self._options.model_copy(update=options)
+        all_profanity = self._default_profanity.union(set(merged_options.custom_words))
+        
+        words = content.lower().split()
+        found_profanity = [word for word in words if word in all_profanity]
+        
+        return ValidationResult(
+            passed=len(found_profanity) == 0,
+            violations=[f"Found profanity: {word}" for word in found_profanity]
+        )
+
+    def _transform(self, content: str, options: Dict[str, Any]) -> TransformationResult:
+        merged_options = self._options.model_copy(update=options)
+        all_profanity = self._default_profanity.union(set(merged_options.custom_words))
+        
+        transformed = content
+        for word in all_profanity:
+            transformed = transformed.replace(word, merged_options.replacement)
+        
+        return TransformationResult(
+            transformed_content=transformed,
+            details={
+                "replacement_char": merged_options.replacement,
+                "custom_words_added": len(merged_options.custom_words)
+            }
+        )
 ```
 
 ## Contributing
