@@ -9,7 +9,7 @@ POST {{baseUrl}}/validate
 Content-Type: application/json
 
 {
-  "content": "let's play this game of musical chairs while discussing the latest trends in classical music and the impact of music therapy",
+  "content": ["how are you doing today?", "let's play this game of musical chairs while discussing the latest trends in classical music and the impact of music therapy"],
   "guardrails": ["topics"],
   "options": {
     "topics": {
@@ -22,7 +22,7 @@ POST {{baseUrl}}/validate
 Content-Type: application/json
 
 {
-  "content": "Coldplay performed at the Grammys last night. They are a great band.",
+  "content": ["Coldplay performed at the Grammys last night. They are a great band."],
   "guardrails": ["topics"],
   "options": {
     "topics": {
