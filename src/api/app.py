@@ -111,7 +111,7 @@ async def transform_content(request: TransformRequest):
     contents = request.content if isinstance(request.content, list) else [request.content]
     
     results = {
-        "transformed_contents": [],
+        "transformed_content": [],
         "applied_transformations": [],
         "details": {}
     }
@@ -146,13 +146,12 @@ async def transform_content(request: TransformRequest):
                     detail=f"Guardrail {guardrail_id} does not support transformation"
                 )
         
-        results["transformed_contents"].append(current_content)
+        results["transformed_content"].append(current_content)
         results["details"][f"content_{idx}"] = content_details
     
     # If input was a single string, return single string output for backward compatibility
     if not isinstance(request.content, list):
-        results["transformed_content"] = results["transformed_contents"][0]
-        del results["transformed_contents"]
+        results["transformed_content"] = results["transformed_content"][0]
     
     return results
 

@@ -68,7 +68,7 @@ POST {{baseUrl}}/transform
 Content-Type: application/json
 
 {
-  "content": "John Doe's email is john.doe@example.com, phone number is 123-456-7890, and his credit card number is 4111 1111 1111 1111. Note that the number 4111 1111 1111 1112 is not a valid credit card number.",
+  "content": "John Doe's email is john.doe@example.com, phone number is 123-456-7890, and his credit card number is 4111 1111 1111 1111.",
   "guardrails": ["pii"],
   "options": {
     "pii": {
